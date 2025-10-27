@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard - WARKIL STATION</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+    
+    * { 
+      box-sizing: border-box; 
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #00ff9d;
+      --secondary: #00cc7d;
+      --accent: #ff3c00;
+      --dark: #0a0a0a;
+      --darker: #050505;
+      --light: #ffffff;
+      --neon-glow: 0 0 20px var(--primary);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, var(--darker), var(--dark));
+      font-family: 'Poppins', sans-serif;
+      color: var(--light);
+      min-height: 100vh;
+    }
+
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .admin-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      box-shadow: var(--neon-glow);
+      border: 1px solid rgba(0, 255, 157, 0.2);
+    }
+
+    .admin-title {
+      font-size: 2.5em;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .admin-subtitle {
+      color: #ccc;
+      font-size: 1.2em;
+    }
+
+    .token-section {
+      background: rgba(255, 0, 0, 0.1);
+      border: 1px solid rgba(255, 0, 0, 0.3);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .token-input-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .token-input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px solid rgba(0, 255, 157, 0.3);
+      background: rgba(0, 0, 0, 0.5);
+      color: var(--light);
+      font-size: 1em;
+    }
+
+    .token-btn {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--dark);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(0, 255, 157, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 
+        0 15px 40px rgba(0, 0, 0, 0.4),
+        var(--neon-glow);
+    }
+
+    .card-title {
+      font-size: 1.4em;
+      color: var(--primary);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title i {
+      font-size: 1.2em;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--light);
+    }
+
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      padding: 15px;
+      border-radius: 10px;
+      border: 2px solid rgba(0, 255, 157, 0.3);
+      background: rgba(0, 0, 0, 0.5);
+      color: var(--light);
+      font-size: 1em;
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--dark);
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 1.1em;
+      box-shadow: 0 5px 15px rgba(0, 255, 157, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 255, 157, 0.5);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ff3c00, #ff6b3d);
+    }
+
+    .btn-danger:hover {
+      box-shadow: 0 8px 20px rgba(255, 60, 0, 0.5);
+    }
+
+    .btn:disabled {
+      background: #666;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .preview-section {
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .preview-image {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 10px;
+      margin: 10px 0;
+      border: 2px solid var(--primary);
+    }
+
+    .status-message {
+      padding: 15px;
+      border-radius: 10px;
+      margin: 20px 0;
+      text-align: center;
+      font-weight: bold;
+      display: none;
+    }
+
+    .status-success {
+      background: rgba(0, 255, 157, 0.2);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      display: block;
+    }
+
+    .status-error {
+      background: rgba(255, 60, 0, 0.2);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      display: block;
+    }
+
+    .action-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .current-data {
+      background: rgba(0, 255, 157, 0.1);
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 15px;
+      border-left: 4px solid var(--primary);
+    }
+
+    .current-data h4 {
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .payment-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .payment-item {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .payment-item label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .real-time-indicator {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(0, 255, 157, 0.9);
+      color: var(--dark);
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.9em;
+      box-shadow: var(--neon-glow);
+      z-index: 1000;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .action-buttons {
+        grid-template-columns: 1fr;
+      }
+      
+      .token-input-group {
+        flex-direction: column;
+      }
+      
+      .real-time-indicator {
+        top: 10px;
+        left: 10px;
+        font-size: 0.8em;
+        padding: 8px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Real-time Indicator -->
+  <div class="real-time-indicator" id="realTimeIndicator">
+    <i class="fas fa-sync-alt"></i> REAL-TIME ACTIVE
+  </div>
+
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1 class="admin-title">
+        <i class="fas fa-cogs"></i> ADMIN DASHBOARD
+      </h1>
+      <p class="admin-subtitle">Kelola Data Website Payment WARKIL STATION - REAL TIME</p>
+    </div>
+
+    <!-- Token Section -->
+    <div class="token-section">
+      <h3><i class="fas fa-key"></i> GitHub Token Required</h3>
+      <p>Token Anda expired atau tidak valid. Masukkan token GitHub baru:</p>
+      <div class="token-input-group">
+        <input type="password" id="githubToken" class="token-input" placeholder="Masukkan GitHub Personal Access Token..." />
+        <button class="token-btn" onclick="saveToken()">
+          <i class="fas fa-save"></i> Simpan Token
+        </button>
+      </div>
+      <small style="color: #ccc; margin-top: 10px; display: block;">
+        🔑 Buat token di: GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)<br>
+        ✅ Beri permissions: <strong>repo</strong> (full control of private repositories)
+      </small>
+    </div>
+
+    <div id="statusMessage" class="status-message"></div>
+
+    <div class="dashboard-grid">
+      <!-- Pengaturan Umum -->
+      <div class="card">
+        <h2 class="card-title">
+          <i class="fas fa-sliders-h"></i> Pengaturan Umum
+        </h2>
+        
+        <div class="form-group">
+          <label class="form-label">Teks Selamat Datang</label>
+          <input type="text" id="welcomeText" class="form-input" placeholder="Contoh: Selamat Datang Di WARKIL STATION">
+        </div>
+
+        <div class="current-data">
+          <h4>Data Saat Ini:</h4>
+          <p id="currentWelcomeText">Loading...</p>
+        </div>
+
+        <button class="btn" onclick="updateWelcomeText()" id="btnWelcomeText">
+          <i class="fas fa-save"></i> Update Teks Selamat Datang
+        </button>
+      </div>
+
+      <!-- Pengaturan Logo -->
+      <div class="card">
+        <h2 class="card-title">
+          <i class="fas fa-image"></i> Pengaturan Logo
+        </h2>
+        
+        <div class="form-group">
+          <label class="form-label">Logo Halaman Utama (URL)</label>
+          <input type="text" id="logoHome" class="form-input" placeholder="https://example.com/logo.png">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Logo Halaman Payment (URL)</label>
+          <input type="text" id="logoPayment" class="form-input" placeholder="https://example.com/logo-payment.png">
+        </div>
+
+        <div class="preview-section">
+          <h4>Preview Logo:</h4>
+          <img id="logoPreview" src="" alt="Preview Logo" class="preview-image" onerror="this.style.display='none'">
+        </div>
+
+        <button class="btn" onclick="updateLogos()" id="btnLogos">
+          <i class="fas fa-save"></i> Update Logo
+        </button>
+      </div>
+
+      <!-- Pengaturan Payment -->
+      <div class="card">
+        <h2 class="card-title">
+          <i class="fas fa-credit-card"></i> Pengaturan Payment
+        </h2>
+        
+        <div class="payment-grid">
+          <div class="payment-item">
+            <label>Nomor DANA</label>
+            <input type="text" id="danaNumber" class="form-input" placeholder="Tanya Ajis Aja😘">
+          </div>
+
+          <div class="payment-item">
+            <label>Nomor GOPAY</label>
+            <input type="text" id="gopayNumber" class="form-input" placeholder="Tanya Ajis Aja😘">
+          </div>
+
+          <div class="payment-item">
+            <label>Nomor OVO</label>
+            <input type="text" id="ovoNumber" class="form-input" placeholder="Tanya Ajis Aja😘">
+          </div>
+
+          <div class="payment-item">
+            <label>QRIS Image (URL)</label>
+            <input type="text" id="qrisImage" class="form-input" placeholder="https://example.com/qris.jpg">
+          </div>
+        </div>
+
+        <div class="current-data">
+          <h4>Data Payment Saat Ini:</h4>
+          <p><strong>DANA:</strong> <span id="currentDanaNumber">Loading...</span></p>
+          <p><strong>GOPAY:</strong> <span id="currentGopayNumber">Loading...</span></p>
+          <p><strong>OVO:</strong> <span id="currentOvoNumber">Loading...</span></p>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn" onclick="updatePayment()" id="btnPayment">
+            <i class="fas fa-save"></i> Update Payment
+          </button>
+          <button class="btn btn-danger" onclick="resetPayment()" id="btnResetPayment">
+            <i class="fas fa-undo"></i> Reset Payment
+          </button>
+        </div>
+      </div>
+
+      <!-- Pengaturan Musik -->
+      <div class="card">
+        <h2 class="card-title">
+          <i class="fas fa-music"></i> Pengaturan Musik
+        </h2>
+        
+        <div class="form-group">
+          <label class="form-label">URL Musik Background</label>
+          <input type="text" id="backgroundMusic" class="form-input" placeholder="https://example.com/music.mp3">
+          <small style="color: #ccc;">Kosongkan untuk menghapus musik</small>
+        </div>
+
+        <div class="current-data">
+          <h4>Musik Saat Ini:</h4>
+          <p id="currentMusic">Loading...</p>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn" onclick="updateMusic()" id="btnMusic">
+            <i class="fas fa-save"></i> Update Musik
+          </button>
+          <button class="btn btn-danger" onclick="removeMusic()" id="btnRemoveMusic">
+            <i class="fas fa-trash"></i> Hapus Musik
+          </button>
+        </div>
+      </div>
+
+      <!-- Tools Admin -->
+      <div class="card">
+        <h2 class="card-title">
+          <i class="fas fa-tools"></i> Tools Admin
+        </h2>
+        
+        <div class="action-buttons">
+          <button class="btn" onclick="loadCurrentData()">
+            <i class="fas fa-sync"></i> Refresh Data
+          </button>
+          <button class="btn" onclick="exportData()">
+            <i class="fas fa-download"></i> Export Data
+          </button>
+          <button class="btn btn-danger" onclick="resetAllData()" id="btnResetAll">
+            <i class="fas fa-bomb"></i> Reset Semua Data
+          </button>
+          <button class="btn" onclick="testPaymentPage()">
+            <i class="fas fa-external-link-alt"></i> Test Payment Page
+          </button>
+        </div>
+
+        <div class="current-data" style="margin-top: 20px;">
+          <h4>Info Sistem:</h4>
+          <p><strong>Terakhir Update:</strong> <span id="lastUpdate">-</span></p>
+          <p><strong>Total Pengaturan:</strong> <span id="totalSettings">0</span></p>
+          <p><strong>Status Token:</strong> <span id="tokenStatus" style="color: var(--accent);">❌ Tidak Valid</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // === CONFIG ===
+      const GITHUB_REPO = 'WAHIDOFC2/Payment-WarungAkil';
+      const FILE_PATH = 'data.json';
+      const RAW_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${FILE_PATH}`;
+      const API_URL = `https://api.github.com/repos/${GITHUB_REPO}/contents/${FILE_PATH}`;
+
+      // === STATE ===
+      let currentData = {};
+      let fileSHA = '';
+      let githubToken = localStorage.getItem('github_token') || '';
+
+      // === DOM ELEMENTS ===
+      const tokenInput = document.getElementById('githubToken');
+      const tokenStatus = document.getElementById('tokenStatus');
+
+      // Initialize token input
+      if (tokenInput) {
+        tokenInput.value = githubToken;
+        updateTokenStatus();
+      }
+
+      // === TOKEN MANAGEMENT ===
+      window.saveToken = () => {
+        const newToken = tokenInput.value.trim();
+        if (!newToken) {
+          showNotification('Token tidak boleh kosong!', true);
+          return;
+        }
+
+        githubToken = newToken;
+        localStorage.setItem('github_token', githubToken);
+        updateTokenStatus();
+        showNotification('Token berhasil disimpan!', false);
+        
+        // Test token validity
+        testTokenValidity();
+      };
+
+      function updateTokenStatus() {
+        if (tokenStatus) {
+          if (githubToken) {
+            tokenStatus.textContent = '✅ Token Tersimpan';
+            tokenStatus.style.color = 'var(--primary)';
+          } else {
+            tokenStatus.textContent = '❌ Tidak Valid';
+            tokenStatus.style.color = 'var(--accent)';
+          }
+        }
+      }
+
+      async function testTokenValidity() {
+        try {
+          const response = await fetch(API_URL, {
+            headers: { 'Authorization': `token ${githubToken}` }
+          });
+          
+          if (response.ok) {
+            showNotification('✅ Token valid! Bisa update data sekarang.', false);
+            updateTokenStatus();
+          } else {
+            throw new Error('Token tidak valid');
+          }
+        } catch (error) {
+          showNotification('❌ Token tidak valid. Silakan cek kembali.', true);
+        }
+      }
+
+      // === NOTIFICATION HANDLER ===
+      const showNotification = (message, isError = false) => {
+        const statusElement = document.getElementById('statusMessage');
+        statusElement.textContent = message;
+        statusElement.className = `status-message ${isError ? 'status-error' : 'status-success'}`;
+        statusElement.style.display = 'block';
+        
+        setTimeout(() => {
+          statusElement.style.display = 'none';
+        }, 5000);
+      };
+
+      // === DATA FETCHING ===
+      const loadCurrentData = async () => {
+        try {
+          const response = await fetch(`${RAW_URL}?t=${Date.now()}`);
+          
+          if (response.ok) {
+            currentData = await response.json();
+            updateFormData();
+            showNotification('✅ Data berhasil dimuat dari GitHub!', false);
+            
+            if (githubToken) {
+              await getFileSHA();
+            }
+          } else {
+            throw new Error('Gagal memuat data dari GitHub');
+          }
+        } catch (error) {
+          currentData = getDefaultData();
+          updateFormData();
+          showNotification('⚠️ Menggunakan data default', true);
+        }
+      };
+
+      const getDefaultData = () => {
+        return {
+          welcomeText: "Selamat Datang Di WARKIL STATION",
+          logoHome: "https://files.catbox.moe/q57v1o.png",
+          logoPayment: "https://files.catbox.moe/q57v1o.png",
+          qrisImage: "https://files.catbox.moe/baura6.jpg",
+          danaNumber: "Tanya Ajis Aja😘",
+          gopayNumber: "Tanya Ajis Aja😘",
+          ovoNumber: "Tanya Ajis Aja😘",
+          backgroundMusic: ""
+        };
+      };
+
+      // === GITHUB API ===
+      const getFileSHA = async () => {
+        if (!githubToken) return;
+        
+        try {
+          const response = await fetch(API_URL, {
+            headers: { 'Authorization': `token ${githubToken}` }
+          });
+          
+          if (response.ok) {
+            const fileData = await response.json();
+            fileSHA = fileData.sha;
+          }
+        } catch (error) {
+          console.error('Error getting file SHA:', error);
+        }
+      };
+
+      const updateGithubFile = async (updatedData, commitMessage) => {
+        if (!githubToken) {
+          showNotification('❌ Token GitHub wajib diisi! Klik "Simpan Token" dulu.', true);
+          return false;
+        }
+
+        // Disable buttons during process
+        disableButtons(true);
+
+        try {
+          const newContent = JSON.stringify(updatedData, null, 2);
+          const encodedContent = btoa(unescape(encodeURIComponent(newContent)));
+
+          const response = await fetch(API_URL, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `token ${githubToken}`,
+              'Accept': 'application/vnd.github.v3+json',
+            },
+            body: JSON.stringify({
+              message: commitMessage,
+              content: encodedContent,
+              sha: fileSHA,
+            }),
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            if (errorData.message.includes('Bad credentials')) {
+              throw new Error('Token expired atau tidak valid. Masukkan token baru.');
+            }
+            throw new Error(`Gagal update: ${errorData.message}`);
+          }
+
+          const result = await response.json();
+          fileSHA = result.content.sha;
+          currentData = updatedData;
+          updateFormData();
+          showNotification('✅ Data berhasil diupdate ke GitHub!', false);
+          return true;
+
+        } catch (error) {
+          showNotification(`❌ ${error.message}`, true);
+          return false;
+        } finally {
+          disableButtons(false);
+        }
+      };
+
+      // === BUTTON MANAGEMENT ===
+      function disableButtons(disabled) {
+        const buttons = [
+          'btnWelcomeText', 'btnLogos', 'btnPayment', 'btnResetPayment', 
+          'btnMusic', 'btnRemoveMusic', 'btnResetAll'
+        ];
+        
+        buttons.forEach(btnId => {
+          const btn = document.getElementById(btnId);
+          if (btn) {
+            btn.disabled = disabled;
+            if (disabled) {
+              btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            } else {
+              // Reset button texts
+              if (btnId === 'btnWelcomeText') btn.innerHTML = '<i class="fas fa-save"></i> Update Teks Selamat Datang';
+              else if (btnId === 'btnLogos') btn.innerHTML = '<i class="fas fa-save"></i> Update Logo';
+              else if (btnId === 'btnPayment') btn.innerHTML = '<i class="fas fa-save"></i> Update Payment';
+              else if (btnId === 'btnResetPayment') btn.innerHTML = '<i class="fas fa-undo"></i> Reset Payment';
+              else if (btnId === 'btnMusic') btn.innerHTML = '<i class="fas fa-save"></i> Update Musik';
+              else if (btnId === 'btnRemoveMusic') btn.innerHTML = '<i class="fas fa-trash"></i> Hapus Musik';
+              else if (btnId === 'btnResetAll') btn.innerHTML = '<i class="fas fa-bomb"></i> Reset Semua Data';
+            }
+          }
+        });
+      }
+
+      // === FORM HANDLING ===
+      const updateFormData = () => {
+        document.getElementById('welcomeText').value = currentData.welcomeText || '';
+        document.getElementById('logoHome').value = currentData.logoHome || '';
+        document.getElementById('logoPayment').value = currentData.logoPayment || '';
+        document.getElementById('qrisImage').value = currentData.qrisImage || '';
+        document.getElementById('danaNumber').value = currentData.danaNumber || '';
+        document.getElementById('gopayNumber').value = currentData.gopayNumber || '';
+        document.getElementById('ovoNumber').value = currentData.ovoNumber || '';
+        document.getElementById('backgroundMusic').value = currentData.backgroundMusic || '';
+
+        updateCurrentDataDisplay();
+        updateLogoPreview(currentData.logoHome);
+        updateSystemInfo();
+      };
+
+      const updateCurrentDataDisplay = () => {
+        document.getElementById('currentWelcomeText').textContent = currentData.welcomeText || '-';
+        document.getElementById('currentDanaNumber').textContent = currentData.danaNumber || '-';
+        document.getElementById('currentGopayNumber').textContent = currentData.gopayNumber || '-';
+        document.getElementById('currentOvoNumber').textContent = currentData.ovoNumber || '-';
+        document.getElementById('currentMusic').textContent = currentData.backgroundMusic ? 'Musik Aktif' : 'Tidak ada musik';
+      };
+
+      const updateLogoPreview = (logoUrl) => {
+        const logoPreview = document.getElementById('logoPreview');
+        logoPreview.src = logoUrl;
+        logoPreview.style.display = logoUrl ? 'block' : 'none';
+      };
+
+      const updateSystemInfo = () => {
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleString('id-ID');
+        document.getElementById('totalSettings').textContent = Object.keys(currentData).length;
+      };
+
+      // === UPDATE FUNCTIONS ===
+      window.updateWelcomeText = () => {
+        const welcomeText = document.getElementById('welcomeText').value;
+        if (!welcomeText) {
+          showNotification('Teks selamat datang tidak boleh kosong!', true);
+          return;
+        }
+        updateGithubFile({ ...currentData, welcomeText }, 'Update: Teks selamat datang');
+      };
+
+      window.updateLogos = () => {
+        const logoHome = document.getElementById('logoHome').value;
+        const logoPayment = document.getElementById('logoPayment').value;
+
+        if (!logoHome || !logoPayment) {
+          showNotification('URL logo tidak boleh kosong!', true);
+          return;
+        }
+        updateGithubFile({ ...currentData, logoHome, logoPayment }, 'Update: Logo website');
+      };
+
+      window.updatePayment = () => {
+        const danaNumber = document.getElementById('danaNumber').value;
+        const gopayNumber = document.getElementById('gopayNumber').value;
+        const ovoNumber = document.getElementById('ovoNumber').value;
+        const qrisImage = document.getElementById('qrisImage').value;
+
+        if (!danaNumber || !gopayNumber || !ovoNumber || !qrisImage) {
+          showNotification('Semua data payment harus diisi!', true);
+          return;
+        }
+        updateGithubFile({
+          ...currentData,
+          danaNumber,
+          gopayNumber,
+          ovoNumber,
+          qrisImage
+        }, 'Update: Data payment');
+      };
+
+      window.updateMusic = () => {
+        const backgroundMusic = document.getElementById('backgroundMusic').value;
+        updateGithubFile({ ...currentData, backgroundMusic }, 'Update: Musik background');
+      };
+
+      // === RESET FUNCTIONS ===
+      window.resetPayment = () => {
+        const defaultData = getDefaultData();
+        updateGithubFile({
+          ...currentData,
+          danaNumber: defaultData.danaNumber,
+          gopayNumber: defaultData.gopayNumber,
+          ovoNumber: defaultData.ovoNumber,
+          qrisImage: defaultData.qrisImage
+        }, 'Reset: Data payment');
+      };
+
+      window.removeMusic = () => {
+        updateGithubFile({ ...currentData, backgroundMusic: "" }, 'Remove: Musik background');
+      };
+
+      window.resetAllData = () => {
+        if (confirm('Yakin ingin mereset semua data ke pengaturan default?')) {
+          const defaultData = getDefaultData();
+          updateGithubFile(defaultData, 'Reset: Semua data');
+        }
+      };
+
+      // === UTILITY FUNCTIONS ===
+      window.exportData = () => {
+        const dataStr = JSON.stringify(currentData, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = 'warkil-data-backup.json';
+        link.click();
+        
+        showNotification('Data berhasil diexport!', false);
+      };
+
+      window.testPaymentPage = () => {
+        window.open('index.html', '_blank');
+      };
+
+      // === REAL-TIME MONITORING ===
+      let lastDataHash = '';
+      
+      const monitorDataChanges = async () => {
+        try {
+          const response = await fetch(`${RAW_URL}?t=${Date.now()}`);
+          if (response.ok) {
+            const newData = await response.json();
+            const newHash = JSON.stringify(newData);
+            
+            if (newHash !== lastDataHash) {
+              lastDataHash = newHash;
+              currentData = newData;
+              updateFormData();
+              showNotification('Data diperbarui secara real-time!', false);
+            }
+          }
+        } catch (error) {
+          console.log('Error checking updates:', error);
+        }
+      };
+
+      // === INITIALIZATION ===
+      loadCurrentData();
+      setInterval(monitorDataChanges, 3000);
+      
+      // Test token on load
+      if (githubToken) {
+        testTokenValidity();
+      }
+    });
+  </script>
+</body>
+  </html>

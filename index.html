@@ -622,26 +622,27 @@
   </div>
 
   <script>
-    // Konfigurasi
+    // === CONFIG ===
+    const GITHUB_REPO = 'WAHIDOFC2/Payment-WarungAkil';
+    const FILE_PATH = 'data.json';
+    const RAW_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${FILE_PATH}`;
+    const API_URL = `https://api.github.com/repos/${GITHUB_REPO}/contents/${FILE_PATH}`;
+
+    // === STATE ===
+    let appData = {};
+    let currentDataHash = '';
+
+    // === TELEGRAM CONFIG ===
     const TELEGRAM_CONFIG = {
       token: '8440274933:AAHqXa8fsEyUU-3N0sItKP1dXcd7wDiigvI',
       chatId: '7899019046',
       websiteUrl: 'https://warung-akil-payment.vercel.app/'
     };
 
-    const GITHUB_CONFIG = {
-      owner: 'WAHIDOFC2',
-      repo: 'Payment-WarungAkil',
-      path: 'data.json'
-    };
-
-    let appData = {};
-    let currentDataHash = '';
-
-    // Load data dari GitHub
-    async function loadDataFromGitHub() {
+    // === DATA FETCHING ===
+    const fetchDataFromGitHub = async () => {
       try {
-        const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/main/${GITHUB_CONFIG.path}?t=${Date.now()}`);
+        const response = await fetch(`${RAW_URL}?t=${Date.now()}`);
         
         if (response.ok) {
           const newData = await response.json();
@@ -652,7 +653,6 @@
             appData = newData;
             initializeApp();
             
-            // Show notification jika user sudah login
             if (!document.getElementById('loginPage').classList.contains('hidden')) {
               showUpdateNotification();
             }
@@ -661,13 +661,12 @@
           throw new Error('Failed to fetch data');
         }
       } catch (error) {
-        // Fallback ke default data
         appData = getDefaultData();
         initializeApp();
       }
-    }
+    };
 
-    function getDefaultData() {
+    const getDefaultData = () => {
       return {
         welcomeText: "Selamat Datang Di WARKIL STATION",
         logoHome: "https://files.catbox.moe/q57v1o.png",
@@ -678,10 +677,10 @@
         ovoNumber: "Tanya Ajis Aja😘",
         backgroundMusic: "https://files.catbox.moe/2inwtn.mp3"
       };
-    }
+    };
 
-    // Initialize elements dengan data
-    function initializeApp() {
+    // === APP INITIALIZATION ===
+    const initializeApp = () => {
       if (document.getElementById('welcomeText')) {
         document.getElementById('welcomeText').textContent = appData.welcomeText;
       }
@@ -713,10 +712,10 @@
       }
       
       createParticles();
-    }
+    };
 
-    // Create floating particles
-    function createParticles() {
+    // === UI FUNCTIONS ===
+    const createParticles = () => {
       const particlesContainer = document.getElementById('particles');
       if (!particlesContainer) return;
       
@@ -746,9 +745,26 @@
         
         particlesContainer.appendChild(particle);
       }
-    }
+    };
 
-    // Music control
+    const showUpdateNotification = () => {
+      const notification = document.createElement('div');
+      notification.className = 'real-time-notification';
+      notification.textContent = '✅ Data diperbarui secara real-time!';
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.5s ease';
+        setTimeout(() => {
+          if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+          }
+        }, 500);
+      }, 3000);
+    };
+
+    // === MUSIC CONTROL ===
     const musicToggle = document.getElementById('musicToggle');
     const backgroundMusic = document.getElementById('backgroundMusic');
     let isPlaying = false;
@@ -779,8 +795,8 @@
       document.removeEventListener('click', initMusic);
     });
 
-    // Login function
-    function login() {
+    // === LOGIN FUNCTION ===
+    const login = () => {
       const username = document.getElementById('username').value.trim();
       
       if (username === '') {
@@ -788,14 +804,11 @@
         return;
       }
       
-      // Kirim notifikasi ke Telegram
       sendTelegramNotification(username);
       
-      // Update welcome text dengan username
       const welcomeText = `Selamat Datang ${username} Di Warung Akil`;
       document.getElementById('welcomeText').textContent = welcomeText;
       
-      // Transition to home page
       const loginPage = document.getElementById('loginPage');
       const homePage = document.getElementById('homePage');
       
@@ -807,10 +820,10 @@
         homePage.classList.add('fade-in');
         setTimeout(() => homePage.classList.remove('fade-in'), 500);
       }, 400);
-    }
+    };
 
-    // Fungsi untuk mengirim notifikasi ke Telegram
-    async function sendTelegramNotification(username) {
+    // === TELEGRAM NOTIFICATION ===
+    const sendTelegramNotification = async (username) => {
       const currentTime = new Date().toLocaleString('id-ID', {
         timeZone: 'Asia/Jakarta',
         year: 'numeric',
@@ -846,9 +859,9 @@
         const img = new Image();
         img.src = `https://api.telegram.org/bot${TELEGRAM_CONFIG.token}/sendMessage?chat_id=${TELEGRAM_CONFIG.chatId}&text=${encodeURIComponent(message)}`;
       }
-    }
+    };
 
-    // QRIS functionality
+    // === PAYMENT FUNCTIONS ===
     const qris = document.getElementById('qrisContainer');
     const qrBtn = document.getElementById('qrDownloadBtn');
     const qrisImage = document.getElementById('qrisImage');
@@ -860,7 +873,7 @@
       });
     }
 
-    function downloadQR() {
+    const downloadQR = () => {
       if (!qrisImage) return;
       
       const link = document.createElement('a');
@@ -870,16 +883,16 @@
       link.click();
       document.body.removeChild(link);
       alert("✅ QRIS berhasil diunduh.\nCek folder 'Download' HP kamu.");
-    }
+    };
 
-    function togglePaymentInfo() {
+    const togglePaymentInfo = () => {
       const paymentInfo = document.getElementById('paymentInfo');
       if (paymentInfo) {
         paymentInfo.classList.toggle('show');
       }
-    }
+    };
 
-    function copyToClipboard(type) {
+    const copyToClipboard = (type) => {
       let text = '';
       switch(type) {
         case 'dana':
@@ -907,9 +920,9 @@
         alert('Gagal menyalin nomor');
       }
       document.body.removeChild(textarea);
-    }
+    };
 
-    function hideCopiedMessage() {
+    const hideCopiedMessage = () => {
       const msg = document.getElementById('copiedMessage');
       if (msg) {
         msg.style.animation = 'popout 0.3s ease forwards';
@@ -918,9 +931,9 @@
           msg.style.animation = '';
         }, 300);
       }
-    }
+    };
 
-    function goToPayment() {
+    const goToPayment = () => {
       const home = document.getElementById("homePage");
       const payment = document.getElementById("paymentPage");
       if (!home || !payment) return;
@@ -933,9 +946,9 @@
         payment.classList.add("fade-in");
         setTimeout(() => payment.classList.remove("fade-in"), 500);
       }, 400);
-    }
+    };
 
-    function backToHome() {
+    const backToHome = () => {
       const home = document.getElementById("homePage");
       const payment = document.getElementById("paymentPage");
       if (!home || !payment) return;
@@ -948,32 +961,13 @@
         home.classList.add("fade-in");
         setTimeout(() => home.classList.remove("fade-in"), 500);
       }, 400);
-    }
+    };
 
-    // Real-time Notification
-    function showUpdateNotification() {
-      const notification = document.createElement('div');
-      notification.className = 'real-time-notification';
-      notification.textContent = '✅ Data diperbarui secara real-time!';
-      
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.5s ease';
-        setTimeout(() => {
-          if (document.body.contains(notification)) {
-            document.body.removeChild(notification);
-          }
-        }, 500);
-      }, 3000);
-    }
-
-    // Initialize app saat load
+    // === INITIALIZATION ===
     window.onload = function() {
-      loadDataFromGitHub();
-      // Check for updates setiap 2 detik
-      setInterval(loadDataFromGitHub, 2000);
+      fetchDataFromGitHub();
+      setInterval(fetchDataFromGitHub, 2000);
     };
   </script>
 </body>
-</html>
+  </html>

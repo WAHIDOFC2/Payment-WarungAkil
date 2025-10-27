@@ -462,6 +462,30 @@
     let currentData = {};
     let fileSHA = '';
 
+    // Fungsi untuk convert string ke base64 dengan UTF-8 support
+    function encodeBase64(str) {
+      try {
+        // Method 1: Menggunakan TextEncoder (modern browsers)
+        if (typeof TextEncoder !== 'undefined') {
+          const encoder = new TextEncoder();
+          const data = encoder.encode(str);
+          const base64 = btoa(String.fromCharCode(...data));
+          return base64;
+        } 
+        // Method 2: Menggunakan encodeURIComponent (fallback)
+        else {
+          return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, 
+            function toSolidBytes(match, p1) {
+              return String.fromCharCode('0x' + p1);
+            })
+          );
+        }
+      } catch (error) {
+        // Method 3: Simple escape untuk karakter khusus
+        return btoa(unescape(encodeURIComponent(str)));
+      }
+    }
+
     // Load data dari GitHub
     async function loadCurrentData() {
       try {
@@ -509,8 +533,9 @@
         // Merge updates dengan data saat ini
         const updatedData = { ...currentData, ...updates };
         
-        // Convert to base64
-        const content = btoa(JSON.stringify(updatedData, null, 2));
+        // Convert to base64 dengan UTF-8 support
+        const jsonString = JSON.stringify(updatedData, null, 2);
+        const content = encodeBase64(jsonString);
         
         // Update ke GitHub
         const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`, {
@@ -529,9 +554,9 @@
 
         if (response.ok) {
           const result = await response.json();
-          fileSHA = result.content.sha; // Update SHA untuk next update
+          fileSHA = result.content.sha;
           showStatus(successMessage, 'success');
-          loadCurrentData(); // Reload data terbaru
+          loadCurrentData();
         } else {
           const errorData = await response.json();
           throw new Error(`GitHub API error: ${errorData.message}`);

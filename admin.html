@@ -266,7 +266,6 @@
       100% { opacity: 1; }
     }
 
-    /* Responsive */
     @media (max-width: 768px) {
       .dashboard-grid {
         grid-template-columns: 1fr;
@@ -461,82 +460,85 @@
     };
 
     let currentData = {};
+    let fileSHA = '';
 
     // Load data dari GitHub
     async function loadCurrentData() {
       try {
         const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/main/${GITHUB_CONFIG.path}?t=${Date.now()}`);
+        
         if (response.ok) {
           currentData = await response.json();
           updateFormData();
-          showStatus('Data berhasil dimuat dari GitHub!', 'success');
+          showStatus('✅ Data berhasil dimuat dari GitHub!', 'success');
+          
+          // Get file SHA untuk update
+          await getFileSHA();
         } else {
           throw new Error('Failed to load data');
         }
       } catch (error) {
         currentData = getDefaultData();
         updateFormData();
-        showStatus('Menggunakan data default', 'error');
+        showStatus('⚠️ Menggunakan data default', 'error');
+      }
+    }
+
+    // Get file SHA dari GitHub
+    async function getFileSHA() {
+      try {
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`, {
+          headers: {
+            'Authorization': `token ${GITHUB_CONFIG.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+        
+        if (response.ok) {
+          const fileData = await response.json();
+          fileSHA = fileData.sha;
+        }
+      } catch (error) {
+        console.error('Error getting file SHA:', error);
       }
     }
 
     // Update data ke GitHub
     async function updateDataToGitHub(updates, successMessage) {
       try {
-        // Get current data first
-        const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/main/${GITHUB_CONFIG.path}`);
-        let currentData = {};
-        
-        if (response.ok) {
-          currentData = await response.json();
-        }
-
-        // Merge updates
+        // Merge updates dengan data saat ini
         const updatedData = { ...currentData, ...updates };
         
-        // Update to GitHub
-        const updateResponse = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`, {
+        // Convert to base64
+        const content = btoa(JSON.stringify(updatedData, null, 2));
+        
+        // Update ke GitHub
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`, {
           method: 'PUT',
           headers: {
             'Authorization': `token ${GITHUB_CONFIG.token}`,
             'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github.v3+json'
           },
           body: JSON.stringify({
             message: `Update data: ${successMessage}`,
-            content: btoa(JSON.stringify(updatedData, null, 2)),
-            sha: await getFileSHA()
+            content: content,
+            sha: fileSHA
           })
         });
 
-        if (updateResponse.ok) {
-          showStatus(successMessage, 'success');
-          loadCurrentData();
-        } else {
-          throw new Error('Failed to update GitHub');
-        }
-      } catch (error) {
-        console.error('Error updating GitHub:', error);
-        showStatus('Gagal update data ke GitHub', 'error');
-      }
-    }
-
-    // Get file SHA untuk update
-    async function getFileSHA() {
-      try {
-        const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`, {
-          headers: {
-            'Authorization': `token ${GITHUB_CONFIG.token}`
-          }
-        });
-        
         if (response.ok) {
-          const fileData = await response.json();
-          return fileData.sha;
+          const result = await response.json();
+          fileSHA = result.content.sha; // Update SHA untuk next update
+          showStatus(successMessage, 'success');
+          loadCurrentData(); // Reload data terbaru
+        } else {
+          const errorData = await response.json();
+          throw new Error(`GitHub API error: ${errorData.message}`);
         }
       } catch (error) {
-        console.error('Error getting file SHA:', error);
+        showStatus('❌ Gagal update data ke GitHub: ' + error.message, 'error');
       }
-      return null;
     }
 
     function getDefaultData() {
@@ -577,7 +579,7 @@
     function updateWelcomeText() {
       const welcomeText = document.getElementById('welcomeText').value;
       if (!welcomeText) {
-        showStatus('Teks selamat datang tidak boleh kosong!', 'error');
+        showStatus('❌ Teks selamat datang tidak boleh kosong!', 'error');
         return;
       }
       updateDataToGitHub({ welcomeText }, 'Teks selamat datang berhasil diupdate!');
@@ -588,7 +590,7 @@
       const logoPayment = document.getElementById('logoPayment').value;
 
       if (!logoHome || !logoPayment) {
-        showStatus('URL logo tidak boleh kosong!', 'error');
+        showStatus('❌ URL logo tidak boleh kosong!', 'error');
         return;
       }
       updateDataToGitHub({ logoHome, logoPayment }, 'Logo berhasil diupdate!');
@@ -601,7 +603,7 @@
       const qrisImage = document.getElementById('qrisImage').value;
 
       if (!danaNumber || !gopayNumber || !ovoNumber || !qrisImage) {
-        showStatus('Semua data payment harus diisi!', 'error');
+        showStatus('❌ Semua data payment harus diisi!', 'error');
         return;
       }
       updateDataToGitHub({
@@ -679,14 +681,14 @@
       link.download = 'warkil-data-backup.json';
       link.click();
       
-      showStatus('Data berhasil diexport!', 'success');
+      showStatus('✅ Data berhasil diexport!', 'success');
     }
 
     function testPaymentPage() {
       window.open('index.html', '_blank');
     }
 
-    // Real-time monitoring
+    // Real-time monitoring untuk perubahan dari luar
     let lastDataHash = '';
     
     async function monitorDataChanges() {
@@ -694,13 +696,13 @@
         const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/main/${GITHUB_CONFIG.path}?t=${Date.now()}`);
         if (response.ok) {
           const newData = await response.json();
-          const newHash = btoa(JSON.stringify(newData));
+          const newHash = JSON.stringify(newData);
           
           if (newHash !== lastDataHash) {
             lastDataHash = newHash;
             currentData = newData;
             updateFormData();
-            showStatus('Data diperbarui secara real-time!', 'success');
+            showStatus('🔄 Data diperbarui secara real-time!', 'success');
           }
         }
       } catch (error) {
@@ -716,4 +718,4 @@
     };
   </script>
 </body>
-  </html>
+</html>

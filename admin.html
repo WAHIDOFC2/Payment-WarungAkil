@@ -6,6 +6,7 @@
   <title>Admin Dashboard - WARKIL STATION</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    /* CSS tetap sama seperti sebelumnya */
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
     
     * { 
@@ -513,359 +514,359 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // === CONFIG ===
-      const GITHUB_REPO = 'WAHIDOFC2/Payment-WarungAkil';
-      const FILE_PATH = 'data.json';
-      const RAW_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${FILE_PATH}`;
-      const API_URL = `https://api.github.com/repos/${GITHUB_REPO}/contents/${FILE_PATH}`;
+    // === CONFIG ===
+    const GITHUB_REPO = 'WAHIDOFC2/Payment-WarungAkil';
+    const FILE_PATH = 'data.json';
+    const RAW_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${FILE_PATH}`;
+    const API_URL = `https://api.github.com/repos/${GITHUB_REPO}/contents/${FILE_PATH}`;
 
-      // === STATE ===
-      let currentData = {};
-      let fileSHA = '';
-      let githubToken = localStorage.getItem('github_token') || '';
+    // === STATE ===
+    let currentData = {};
+    let fileSHA = '';
+    let githubToken = localStorage.getItem('github_token') || '';
 
-      // === DOM ELEMENTS ===
-      const tokenInput = document.getElementById('githubToken');
-      const tokenStatus = document.getElementById('tokenStatus');
+    // === DOM ELEMENTS ===
+    const tokenInput = document.getElementById('githubToken');
+    const tokenStatus = document.getElementById('tokenStatus');
 
-      // Initialize token input
-      if (tokenInput) {
-        tokenInput.value = githubToken;
-        updateTokenStatus();
+    // Initialize token input
+    if (tokenInput) {
+      tokenInput.value = githubToken;
+      updateTokenStatus();
+    }
+
+    // === TOKEN MANAGEMENT ===
+    window.saveToken = () => {
+      const newToken = tokenInput.value.trim();
+      if (!newToken) {
+        showNotification('Token tidak boleh kosong!', true);
+        return;
       }
 
-      // === TOKEN MANAGEMENT ===
-      window.saveToken = () => {
-        const newToken = tokenInput.value.trim();
-        if (!newToken) {
-          showNotification('Token tidak boleh kosong!', true);
-          return;
-        }
-
-        githubToken = newToken;
-        localStorage.setItem('github_token', githubToken);
-        updateTokenStatus();
-        showNotification('Token berhasil disimpan!', false);
-        
-        // Test token validity
-        testTokenValidity();
-      };
-
-      function updateTokenStatus() {
-        if (tokenStatus) {
-          if (githubToken) {
-            tokenStatus.textContent = '✅ Token Tersimpan';
-            tokenStatus.style.color = 'var(--primary)';
-          } else {
-            tokenStatus.textContent = '❌ Tidak Valid';
-            tokenStatus.style.color = 'var(--accent)';
-          }
-        }
-      }
-
-      async function testTokenValidity() {
-        try {
-          const response = await fetch(API_URL, {
-            headers: { 'Authorization': `token ${githubToken}` }
-          });
-          
-          if (response.ok) {
-            showNotification('✅ Token valid! Bisa update data sekarang.', false);
-            updateTokenStatus();
-          } else {
-            throw new Error('Token tidak valid');
-          }
-        } catch (error) {
-          showNotification('❌ Token tidak valid. Silakan cek kembali.', true);
-        }
-      }
-
-      // === NOTIFICATION HANDLER ===
-      const showNotification = (message, isError = false) => {
-        const statusElement = document.getElementById('statusMessage');
-        statusElement.textContent = message;
-        statusElement.className = `status-message ${isError ? 'status-error' : 'status-success'}`;
-        statusElement.style.display = 'block';
-        
-        setTimeout(() => {
-          statusElement.style.display = 'none';
-        }, 5000);
-      };
-
-      // === DATA FETCHING ===
-      const loadCurrentData = async () => {
-        try {
-          const response = await fetch(`${RAW_URL}?t=${Date.now()}`);
-          
-          if (response.ok) {
-            currentData = await response.json();
-            updateFormData();
-            showNotification('✅ Data berhasil dimuat dari GitHub!', false);
-            
-            if (githubToken) {
-              await getFileSHA();
-            }
-          } else {
-            throw new Error('Gagal memuat data dari GitHub');
-          }
-        } catch (error) {
-          currentData = getDefaultData();
-          updateFormData();
-          showNotification('⚠️ Menggunakan data default', true);
-        }
-      };
-
-      const getDefaultData = () => {
-        return {
-          welcomeText: "Selamat Datang Di WARKIL STATION",
-          logoHome: "https://files.catbox.moe/q57v1o.png",
-          logoPayment: "https://files.catbox.moe/q57v1o.png",
-          qrisImage: "https://files.catbox.moe/baura6.jpg",
-          danaNumber: "Tanya Ajis Aja😘",
-          gopayNumber: "Tanya Ajis Aja😘",
-          ovoNumber: "Tanya Ajis Aja😘",
-          backgroundMusic: ""
-        };
-      };
-
-      // === GITHUB API ===
-      const getFileSHA = async () => {
-        if (!githubToken) return;
-        
-        try {
-          const response = await fetch(API_URL, {
-            headers: { 'Authorization': `token ${githubToken}` }
-          });
-          
-          if (response.ok) {
-            const fileData = await response.json();
-            fileSHA = fileData.sha;
-          }
-        } catch (error) {
-          console.error('Error getting file SHA:', error);
-        }
-      };
-
-      const updateGithubFile = async (updatedData, commitMessage) => {
-        if (!githubToken) {
-          showNotification('❌ Token GitHub wajib diisi! Klik "Simpan Token" dulu.', true);
-          return false;
-        }
-
-        // Disable buttons during process
-        disableButtons(true);
-
-        try {
-          const newContent = JSON.stringify(updatedData, null, 2);
-          const encodedContent = btoa(unescape(encodeURIComponent(newContent)));
-
-          const response = await fetch(API_URL, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `token ${githubToken}`,
-              'Accept': 'application/vnd.github.v3+json',
-            },
-            body: JSON.stringify({
-              message: commitMessage,
-              content: encodedContent,
-              sha: fileSHA,
-            }),
-          });
-          
-          if (!response.ok) {
-            const errorData = await response.json();
-            if (errorData.message.includes('Bad credentials')) {
-              throw new Error('Token expired atau tidak valid. Masukkan token baru.');
-            }
-            throw new Error(`Gagal update: ${errorData.message}`);
-          }
-
-          const result = await response.json();
-          fileSHA = result.content.sha;
-          currentData = updatedData;
-          updateFormData();
-          showNotification('✅ Data berhasil diupdate ke GitHub!', false);
-          return true;
-
-        } catch (error) {
-          showNotification(`❌ ${error.message}`, true);
-          return false;
-        } finally {
-          disableButtons(false);
-        }
-      };
-
-      // === BUTTON MANAGEMENT ===
-      function disableButtons(disabled) {
-        const buttons = [
-          'btnWelcomeText', 'btnLogos', 'btnPayment', 'btnResetPayment', 
-          'btnMusic', 'btnRemoveMusic', 'btnResetAll'
-        ];
-        
-        buttons.forEach(btnId => {
-          const btn = document.getElementById(btnId);
-          if (btn) {
-            btn.disabled = disabled;
-            if (disabled) {
-              btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            } else {
-              // Reset button texts
-              if (btnId === 'btnWelcomeText') btn.innerHTML = '<i class="fas fa-save"></i> Update Teks Selamat Datang';
-              else if (btnId === 'btnLogos') btn.innerHTML = '<i class="fas fa-save"></i> Update Logo';
-              else if (btnId === 'btnPayment') btn.innerHTML = '<i class="fas fa-save"></i> Update Payment';
-              else if (btnId === 'btnResetPayment') btn.innerHTML = '<i class="fas fa-undo"></i> Reset Payment';
-              else if (btnId === 'btnMusic') btn.innerHTML = '<i class="fas fa-save"></i> Update Musik';
-              else if (btnId === 'btnRemoveMusic') btn.innerHTML = '<i class="fas fa-trash"></i> Hapus Musik';
-              else if (btnId === 'btnResetAll') btn.innerHTML = '<i class="fas fa-bomb"></i> Reset Semua Data';
-            }
-          }
-        });
-      }
-
-      // === FORM HANDLING ===
-      const updateFormData = () => {
-        document.getElementById('welcomeText').value = currentData.welcomeText || '';
-        document.getElementById('logoHome').value = currentData.logoHome || '';
-        document.getElementById('logoPayment').value = currentData.logoPayment || '';
-        document.getElementById('qrisImage').value = currentData.qrisImage || '';
-        document.getElementById('danaNumber').value = currentData.danaNumber || '';
-        document.getElementById('gopayNumber').value = currentData.gopayNumber || '';
-        document.getElementById('ovoNumber').value = currentData.ovoNumber || '';
-        document.getElementById('backgroundMusic').value = currentData.backgroundMusic || '';
-
-        updateCurrentDataDisplay();
-        updateLogoPreview(currentData.logoHome);
-        updateSystemInfo();
-      };
-
-      const updateCurrentDataDisplay = () => {
-        document.getElementById('currentWelcomeText').textContent = currentData.welcomeText || '-';
-        document.getElementById('currentDanaNumber').textContent = currentData.danaNumber || '-';
-        document.getElementById('currentGopayNumber').textContent = currentData.gopayNumber || '-';
-        document.getElementById('currentOvoNumber').textContent = currentData.ovoNumber || '-';
-        document.getElementById('currentMusic').textContent = currentData.backgroundMusic ? 'Musik Aktif' : 'Tidak ada musik';
-      };
-
-      const updateLogoPreview = (logoUrl) => {
-        const logoPreview = document.getElementById('logoPreview');
-        logoPreview.src = logoUrl;
-        logoPreview.style.display = logoUrl ? 'block' : 'none';
-      };
-
-      const updateSystemInfo = () => {
-        document.getElementById('lastUpdate').textContent = new Date().toLocaleString('id-ID');
-        document.getElementById('totalSettings').textContent = Object.keys(currentData).length;
-      };
-
-      // === UPDATE FUNCTIONS ===
-      window.updateWelcomeText = () => {
-        const welcomeText = document.getElementById('welcomeText').value;
-        if (!welcomeText) {
-          showNotification('Teks selamat datang tidak boleh kosong!', true);
-          return;
-        }
-        updateGithubFile({ ...currentData, welcomeText }, 'Update: Teks selamat datang');
-      };
-
-      window.updateLogos = () => {
-        const logoHome = document.getElementById('logoHome').value;
-        const logoPayment = document.getElementById('logoPayment').value;
-
-        if (!logoHome || !logoPayment) {
-          showNotification('URL logo tidak boleh kosong!', true);
-          return;
-        }
-        updateGithubFile({ ...currentData, logoHome, logoPayment }, 'Update: Logo website');
-      };
-
-      window.updatePayment = () => {
-        const danaNumber = document.getElementById('danaNumber').value;
-        const gopayNumber = document.getElementById('gopayNumber').value;
-        const ovoNumber = document.getElementById('ovoNumber').value;
-        const qrisImage = document.getElementById('qrisImage').value;
-
-        if (!danaNumber || !gopayNumber || !ovoNumber || !qrisImage) {
-          showNotification('Semua data payment harus diisi!', true);
-          return;
-        }
-        updateGithubFile({
-          ...currentData,
-          danaNumber,
-          gopayNumber,
-          ovoNumber,
-          qrisImage
-        }, 'Update: Data payment');
-      };
-
-      window.updateMusic = () => {
-        const backgroundMusic = document.getElementById('backgroundMusic').value;
-        updateGithubFile({ ...currentData, backgroundMusic }, 'Update: Musik background');
-      };
-
-      // === RESET FUNCTIONS ===
-      window.resetPayment = () => {
-        const defaultData = getDefaultData();
-        updateGithubFile({
-          ...currentData,
-          danaNumber: defaultData.danaNumber,
-          gopayNumber: defaultData.gopayNumber,
-          ovoNumber: defaultData.ovoNumber,
-          qrisImage: defaultData.qrisImage
-        }, 'Reset: Data payment');
-      };
-
-      window.removeMusic = () => {
-        updateGithubFile({ ...currentData, backgroundMusic: "" }, 'Remove: Musik background');
-      };
-
-      window.resetAllData = () => {
-        if (confirm('Yakin ingin mereset semua data ke pengaturan default?')) {
-          const defaultData = getDefaultData();
-          updateGithubFile(defaultData, 'Reset: Semua data');
-        }
-      };
-
-      // === UTILITY FUNCTIONS ===
-      window.exportData = () => {
-        const dataStr = JSON.stringify(currentData, null, 2);
-        const dataBlob = new Blob([dataStr], {type: 'application/json'});
-        
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(dataBlob);
-        link.download = 'warkil-data-backup.json';
-        link.click();
-        
-        showNotification('Data berhasil diexport!', false);
-      };
-
-      window.testPaymentPage = () => {
-        window.open('index.html', '_blank');
-      };
-
-      // === REAL-TIME MONITORING ===
-      let lastDataHash = '';
+      githubToken = newToken;
+      localStorage.setItem('github_token', githubToken);
+      updateTokenStatus();
+      showNotification('Token berhasil disimpan!', false);
       
-      const monitorDataChanges = async () => {
-        try {
-          const response = await fetch(`${RAW_URL}?t=${Date.now()}`);
-          if (response.ok) {
-            const newData = await response.json();
-            const newHash = JSON.stringify(newData);
-            
-            if (newHash !== lastDataHash) {
-              lastDataHash = newHash;
-              currentData = newData;
-              updateFormData();
-              showNotification('Data diperbarui secara real-time!', false);
-            }
-          }
-        } catch (error) {
-          console.log('Error checking updates:', error);
-        }
-      };
+      // Test token validity
+      testTokenValidity();
+    };
 
-      // === INITIALIZATION ===
+    function updateTokenStatus() {
+      if (tokenStatus) {
+        if (githubToken) {
+          tokenStatus.textContent = '✅ Token Tersimpan';
+          tokenStatus.style.color = 'var(--primary)';
+        } else {
+          tokenStatus.textContent = '❌ Tidak Valid';
+          tokenStatus.style.color = 'var(--accent)';
+        }
+      }
+    }
+
+    async function testTokenValidity() {
+      try {
+        const response = await fetch(API_URL, {
+          headers: { 'Authorization': `token ${githubToken}` }
+        });
+        
+        if (response.ok) {
+          showNotification('✅ Token valid! Bisa update data sekarang.', false);
+          updateTokenStatus();
+        } else {
+          throw new Error('Token tidak valid');
+        }
+      } catch (error) {
+        showNotification('❌ Token tidak valid. Silakan cek kembali.', true);
+      }
+    }
+
+    // === NOTIFICATION HANDLER ===
+    const showNotification = (message, isError = false) => {
+      const statusElement = document.getElementById('statusMessage');
+      statusElement.textContent = message;
+      statusElement.className = `status-message ${isError ? 'status-error' : 'status-success'}`;
+      statusElement.style.display = 'block';
+      
+      setTimeout(() => {
+        statusElement.style.display = 'none';
+      }, 5000);
+    };
+
+    // === DATA FETCHING ===
+    const loadCurrentData = async () => {
+      try {
+        const response = await fetch(`${RAW_URL}?t=${Date.now()}`);
+        
+        if (response.ok) {
+          currentData = await response.json();
+          updateFormData();
+          showNotification('✅ Data berhasil dimuat dari GitHub!', false);
+          
+          if (githubToken) {
+            await getFileSHA();
+          }
+        } else {
+          throw new Error('Gagal memuat data dari GitHub');
+        }
+      } catch (error) {
+        currentData = getDefaultData();
+        updateFormData();
+        showNotification('⚠️ Menggunakan data default', true);
+      }
+    };
+
+    const getDefaultData = () => {
+      return {
+        welcomeText: "Selamat Datang Di WARKIL STATION",
+        logoHome: "https://files.catbox.moe/q57v1o.png",
+        logoPayment: "https://files.catbox.moe/q57v1o.png",
+        qrisImage: "https://files.catbox.moe/baura6.jpg",
+        danaNumber: "Tanya Ajis Aja😘",
+        gopayNumber: "Tanya Ajis Aja😘",
+        ovoNumber: "Tanya Ajis Aja😘",
+        backgroundMusic: ""
+      };
+    };
+
+    // === GITHUB API ===
+    const getFileSHA = async () => {
+      if (!githubToken) return;
+      
+      try {
+        const response = await fetch(API_URL, {
+          headers: { 'Authorization': `token ${githubToken}` }
+        });
+        
+        if (response.ok) {
+          const fileData = await response.json();
+          fileSHA = fileData.sha;
+        }
+      } catch (error) {
+        console.error('Error getting file SHA:', error);
+      }
+    };
+
+    const updateGithubFile = async (updatedData, commitMessage) => {
+      if (!githubToken) {
+        showNotification('❌ Token GitHub wajib diisi! Klik "Simpan Token" dulu.', true);
+        return false;
+      }
+
+      // Disable buttons during process
+      disableButtons(true);
+
+      try {
+        const newContent = JSON.stringify(updatedData, null, 2);
+        const encodedContent = btoa(unescape(encodeURIComponent(newContent)));
+
+        const response = await fetch(API_URL, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${githubToken}`,
+            'Accept': 'application/vnd.github.v3+json',
+          },
+          body: JSON.stringify({
+            message: commitMessage,
+            content: encodedContent,
+            sha: fileSHA,
+          }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (errorData.message.includes('Bad credentials')) {
+            throw new Error('Token expired atau tidak valid. Masukkan token baru.');
+          }
+          throw new Error(`Gagal update: ${errorData.message}`);
+        }
+
+        const result = await response.json();
+        fileSHA = result.content.sha;
+        currentData = updatedData;
+        updateFormData();
+        showNotification('✅ Data berhasil diupdate ke GitHub!', false);
+        return true;
+
+      } catch (error) {
+        showNotification(`❌ ${error.message}`, true);
+        return false;
+      } finally {
+        disableButtons(false);
+      }
+    };
+
+    // === BUTTON MANAGEMENT ===
+    function disableButtons(disabled) {
+      const buttons = [
+        'btnWelcomeText', 'btnLogos', 'btnPayment', 'btnResetPayment', 
+        'btnMusic', 'btnRemoveMusic', 'btnResetAll'
+      ];
+      
+      buttons.forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.disabled = disabled;
+          if (disabled) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+          } else {
+            // Reset button texts
+            if (btnId === 'btnWelcomeText') btn.innerHTML = '<i class="fas fa-save"></i> Update Teks Selamat Datang';
+            else if (btnId === 'btnLogos') btn.innerHTML = '<i class="fas fa-save"></i> Update Logo';
+            else if (btnId === 'btnPayment') btn.innerHTML = '<i class="fas fa-save"></i> Update Payment';
+            else if (btnId === 'btnResetPayment') btn.innerHTML = '<i class="fas fa-undo"></i> Reset Payment';
+            else if (btnId === 'btnMusic') btn.innerHTML = '<i class="fas fa-save"></i> Update Musik';
+            else if (btnId === 'btnRemoveMusic') btn.innerHTML = '<i class="fas fa-trash"></i> Hapus Musik';
+            else if (btnId === 'btnResetAll') btn.innerHTML = '<i class="fas fa-bomb"></i> Reset Semua Data';
+          }
+        }
+      });
+    }
+
+    // === FORM HANDLING ===
+    const updateFormData = () => {
+      document.getElementById('welcomeText').value = currentData.welcomeText || '';
+      document.getElementById('logoHome').value = currentData.logoHome || '';
+      document.getElementById('logoPayment').value = currentData.logoPayment || '';
+      document.getElementById('qrisImage').value = currentData.qrisImage || '';
+      document.getElementById('danaNumber').value = currentData.danaNumber || '';
+      document.getElementById('gopayNumber').value = currentData.gopayNumber || '';
+      document.getElementById('ovoNumber').value = currentData.ovoNumber || '';
+      document.getElementById('backgroundMusic').value = currentData.backgroundMusic || '';
+
+      updateCurrentDataDisplay();
+      updateLogoPreview(currentData.logoHome);
+      updateSystemInfo();
+    };
+
+    const updateCurrentDataDisplay = () => {
+      document.getElementById('currentWelcomeText').textContent = currentData.welcomeText || '-';
+      document.getElementById('currentDanaNumber').textContent = currentData.danaNumber || '-';
+      document.getElementById('currentGopayNumber').textContent = currentData.gopayNumber || '-';
+      document.getElementById('currentOvoNumber').textContent = currentData.ovoNumber || '-';
+      document.getElementById('currentMusic').textContent = currentData.backgroundMusic ? 'Musik Aktif' : 'Tidak ada musik';
+    };
+
+    const updateLogoPreview = (logoUrl) => {
+      const logoPreview = document.getElementById('logoPreview');
+      logoPreview.src = logoUrl;
+      logoPreview.style.display = logoUrl ? 'block' : 'none';
+    };
+
+    const updateSystemInfo = () => {
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleString('id-ID');
+      document.getElementById('totalSettings').textContent = Object.keys(currentData).length;
+    };
+
+    // === UPDATE FUNCTIONS ===
+    window.updateWelcomeText = () => {
+      const welcomeText = document.getElementById('welcomeText').value;
+      if (!welcomeText) {
+        showNotification('Teks selamat datang tidak boleh kosong!', true);
+        return;
+      }
+      updateGithubFile({ ...currentData, welcomeText }, 'Update: Teks selamat datang');
+    };
+
+    window.updateLogos = () => {
+      const logoHome = document.getElementById('logoHome').value;
+      const logoPayment = document.getElementById('logoPayment').value;
+
+      if (!logoHome || !logoPayment) {
+        showNotification('URL logo tidak boleh kosong!', true);
+        return;
+      }
+      updateGithubFile({ ...currentData, logoHome, logoPayment }, 'Update: Logo website');
+    };
+
+    window.updatePayment = () => {
+      const danaNumber = document.getElementById('danaNumber').value;
+      const gopayNumber = document.getElementById('gopayNumber').value;
+      const ovoNumber = document.getElementById('ovoNumber').value;
+      const qrisImage = document.getElementById('qrisImage').value;
+
+      if (!danaNumber || !gopayNumber || !ovoNumber || !qrisImage) {
+        showNotification('Semua data payment harus diisi!', true);
+        return;
+      }
+      updateGithubFile({
+        ...currentData,
+        danaNumber,
+        gopayNumber,
+        ovoNumber,
+        qrisImage
+      }, 'Update: Data payment');
+    };
+
+    window.updateMusic = () => {
+      const backgroundMusic = document.getElementById('backgroundMusic').value;
+      updateGithubFile({ ...currentData, backgroundMusic }, 'Update: Musik background');
+    };
+
+    // === RESET FUNCTIONS ===
+    window.resetPayment = () => {
+      const defaultData = getDefaultData();
+      updateGithubFile({
+        ...currentData,
+        danaNumber: defaultData.danaNumber,
+        gopayNumber: defaultData.gopayNumber,
+        ovoNumber: defaultData.ovoNumber,
+        qrisImage: defaultData.qrisImage
+      }, 'Reset: Data payment');
+    };
+
+    window.removeMusic = () => {
+      updateGithubFile({ ...currentData, backgroundMusic: "" }, 'Remove: Musik background');
+    };
+
+    window.resetAllData = () => {
+      if (confirm('Yakin ingin mereset semua data ke pengaturan default?')) {
+        const defaultData = getDefaultData();
+        updateGithubFile(defaultData, 'Reset: Semua data');
+      }
+    };
+
+    // === UTILITY FUNCTIONS ===
+    window.exportData = () => {
+      const dataStr = JSON.stringify(currentData, null, 2);
+      const dataBlob = new Blob([dataStr], {type: 'application/json'});
+      
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(dataBlob);
+      link.download = 'warkil-data-backup.json';
+      link.click();
+      
+      showNotification('Data berhasil diexport!', false);
+    };
+
+    window.testPaymentPage = () => {
+      window.open('index.html', '_blank');
+    };
+
+    // === REAL-TIME MONITORING ===
+    let lastDataHash = '';
+    
+    const monitorDataChanges = async () => {
+      try {
+        const response = await fetch(`${RAW_URL}?t=${Date.now()}`);
+        if (response.ok) {
+          const newData = await response.json();
+          const newHash = JSON.stringify(newData);
+          
+          if (newHash !== lastDataHash) {
+            lastDataHash = newHash;
+            currentData = newData;
+            updateFormData();
+            showNotification('Data diperbarui secara real-time!', false);
+          }
+        }
+      } catch (error) {
+        console.log('Error checking updates:', error);
+      }
+    };
+
+    // === INITIALIZATION ===
+    document.addEventListener('DOMContentLoaded', () => {
       loadCurrentData();
       setInterval(monitorDataChanges, 3000);
       

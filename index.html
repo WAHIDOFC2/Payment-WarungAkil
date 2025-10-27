@@ -485,6 +485,31 @@
       }
     }
 
+    /* Real-time Notification */
+    .real-time-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 255, 157, 0.9);
+      color: var(--dark);
+      padding: 15px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      box-shadow: var(--neon-glow);
+      z-index: 10000;
+      animation: slideInRight 0.5s ease;
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOutRight {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+
     /* Responsive */
     @media (max-width: 480px) {
       .page-title {
@@ -861,21 +886,63 @@
       }, 400);
     }
 
-    // Real-time data update
-    function checkForUpdates() {
-      const newData = JSON.parse(localStorage.getItem('warkilData'));
-      if (newData && JSON.stringify(newData) !== JSON.stringify(appData)) {
-        appData = newData;
-        initializeApp();
+    // Real-time Notification
+    function showUpdateNotification() {
+      const notification = document.createElement('div');
+      notification.className = 'real-time-notification';
+      notification.textContent = '✅ Data diperbarui secara real-time!';
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.5s ease';
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 500);
+      }, 3000);
+    }
+
+    // Enhanced real-time monitoring
+    let lastDataHash = '';
+    
+    function monitorDataChanges() {
+      const currentData = localStorage.getItem('warkilData');
+      const currentHash = btoa(currentData || '');
+      
+      if (currentHash !== lastDataHash) {
+        lastDataHash = currentHash;
+        const newData = JSON.parse(currentData);
+        if (newData) {
+          appData = newData;
+          initializeApp();
+          if (document.getElementById('homePage').classList.contains('hidden') === false || 
+              document.getElementById('paymentPage').classList.contains('hidden') === false) {
+            showUpdateNotification();
+          }
+        }
       }
     }
 
     // Initialize app saat load
     window.onload = function() {
       initializeApp();
-      // Check for updates every 2 seconds
-      setInterval(checkForUpdates, 2000);
+      // Simpan hash awal
+      lastDataHash = btoa(localStorage.getItem('warkilData') || '');
+      // Check for updates lebih sering untuk real-time
+      setInterval(monitorDataChanges, 500);
     };
+
+    // Listen untuk storage events (jika multiple tabs)
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'warkilData') {
+        const newData = JSON.parse(e.newValue);
+        if (newData) {
+          appData = newData;
+          initializeApp();
+          showUpdateNotification();
+        }
+      }
+    });
   </script>
 </body>
   </html>

@@ -245,6 +245,27 @@
       color: var(--primary);
     }
 
+    .real-time-indicator {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(0, 255, 157, 0.9);
+      color: var(--dark);
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.9em;
+      box-shadow: var(--neon-glow);
+      z-index: 1000;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .dashboard-grid {
@@ -254,10 +275,22 @@
       .action-buttons {
         grid-template-columns: 1fr;
       }
+      
+      .real-time-indicator {
+        top: 10px;
+        left: 10px;
+        font-size: 0.8em;
+        padding: 8px 12px;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Real-time Indicator -->
+  <div class="real-time-indicator" id="realTimeIndicator">
+    <i class="fas fa-sync-alt"></i> REAL-TIME ACTIVE
+  </div>
+
   <div class="admin-container">
     <div class="admin-header">
       <h1 class="admin-title">
@@ -420,18 +453,13 @@
   </div>
 
   <script>
-    // Load current data
+    // Enhanced real-time data management
+    let currentData = {};
+
+    // Load current data dengan real-time features
     function loadCurrentData() {
-      const data = JSON.parse(localStorage.getItem('warkilData')) || {
-        welcomeText: "Selamat Datang Di WARKIL STATION",
-        logoHome: "https://files.catbox.moe/q57v1o.png",
-        logoPayment: "https://files.catbox.moe/q57v1o.png",
-        qrisImage: "https://files.catbox.moe/baura6.jpg",
-        danaNumber: "Tanya Ajis Aja😘",
-        gopayNumber: "Tanya Ajis Aja😘",
-        ovoNumber: "Tanya Ajis Aja😘",
-        backgroundMusic: ""
-      };
+      const data = JSON.parse(localStorage.getItem('warkilData')) || getDefaultData();
+      currentData = data;
 
       // Set form values
       document.getElementById('welcomeText').value = data.welcomeText;
@@ -444,25 +472,32 @@
       document.getElementById('backgroundMusic').value = data.backgroundMusic || '';
 
       // Set current data display
-      document.getElementById('currentWelcomeText').textContent = data.welcomeText;
-      document.getElementById('currentDanaNumber').textContent = data.danaNumber;
-      document.getElementById('currentGopayNumber').textContent = data.gopayNumber;
-      document.getElementById('currentOvoNumber').textContent = data.ovoNumber;
-      document.getElementById('currentMusic').textContent = data.backgroundMusic ? 'Musik Aktif' : 'Tidak ada musik';
+      updateCurrentDataDisplay(data);
       
       // Update logo preview
-      const logoPreview = document.getElementById('logoPreview');
-      logoPreview.src = data.logoHome;
-      logoPreview.style.display = data.logoHome ? 'block' : 'none';
+      updateLogoPreview(data.logoHome);
 
       // Update system info
-      document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
-      document.getElementById('totalSettings').textContent = Object.keys(data).length;
+      updateSystemInfo();
 
       showStatus('Data berhasil dimuat!', 'success');
     }
 
-    // Update functions
+    // Get default data structure
+    function getDefaultData() {
+      return {
+        welcomeText: "Selamat Datang Di WARKIL STATION",
+        logoHome: "https://files.catbox.moe/q57v1o.png",
+        logoPayment: "https://files.catbox.moe/q57v1o.png",
+        qrisImage: "https://files.catbox.moe/baura6.jpg",
+        danaNumber: "Tanya Ajis Aja😘",
+        gopayNumber: "Tanya Ajis Aja😘",
+        ovoNumber: "Tanya Ajis Aja😘",
+        backgroundMusic: ""
+      };
+    }
+
+    // Enhanced update functions dengan real-time feedback
     function updateWelcomeText() {
       const welcomeText = document.getElementById('welcomeText').value;
       if (!welcomeText) {
@@ -470,11 +505,7 @@
         return;
       }
 
-      const data = getCurrentData();
-      data.welcomeText = welcomeText;
-      localStorage.setItem('warkilData', JSON.stringify(data));
-      showStatus('Teks selamat datang berhasil diupdate!', 'success');
-      loadCurrentData();
+      updateData({ welcomeText }, 'Teks selamat datang berhasil diupdate!');
     }
 
     function updateLogos() {
@@ -486,12 +517,10 @@
         return;
       }
 
-      const data = getCurrentData();
-      data.logoHome = logoHome;
-      data.logoPayment = logoPayment;
-      localStorage.setItem('warkilData', JSON.stringify(data));
-      showStatus('Logo berhasil diupdate!', 'success');
-      loadCurrentData();
+      updateData({ 
+        logoHome, 
+        logoPayment 
+      }, 'Logo berhasil diupdate!');
     }
 
     function updatePayment() {
@@ -505,65 +534,62 @@
         return;
       }
 
-      const data = getCurrentData();
-      data.danaNumber = danaNumber;
-      data.gopayNumber = gopayNumber;
-      data.ovoNumber = ovoNumber;
-      data.qrisImage = qrisImage;
-      localStorage.setItem('warkilData', JSON.stringify(data));
-      showStatus('Data payment berhasil diupdate!', 'success');
-      loadCurrentData();
+      updateData({
+        danaNumber,
+        gopayNumber,
+        ovoNumber,
+        qrisImage
+      }, 'Data payment berhasil diupdate!');
     }
 
     function updateMusic() {
       const backgroundMusic = document.getElementById('backgroundMusic').value;
-
-      const data = getCurrentData();
-      data.backgroundMusic = backgroundMusic;
-      localStorage.setItem('warkilData', JSON.stringify(data));
-      showStatus('Musik berhasil diupdate!', 'success');
-      loadCurrentData();
+      updateData({ backgroundMusic }, 'Musik berhasil diupdate!');
     }
 
-    // Reset functions
+    // Enhanced reset functions
     function resetPayment() {
-      const data = getCurrentData();
-      data.danaNumber = "Tanya Ajis Aja😘";
-      data.gopayNumber = "Tanya Ajis Aja😘";
-      data.ovoNumber = "Tanya Ajis Aja😘";
-      data.qrisImage = "https://files.catbox.moe/baura6.jpg";
-      localStorage.setItem('warkilData', JSON.stringify(data));
-      showStatus('Data payment berhasil direset!', 'success');
-      loadCurrentData();
+      const defaultData = getDefaultData();
+      updateData({
+        danaNumber: defaultData.danaNumber,
+        gopayNumber: defaultData.gopayNumber,
+        ovoNumber: defaultData.ovoNumber,
+        qrisImage: defaultData.qrisImage
+      }, 'Data payment berhasil direset!');
     }
 
     function removeMusic() {
-      const data = getCurrentData();
-      data.backgroundMusic = "";
-      localStorage.setItem('warkilData', JSON.stringify(data));
-      showStatus('Musik berhasil dihapus!', 'success');
-      loadCurrentData();
+      updateData({ backgroundMusic: "" }, 'Musik berhasil dihapus!');
     }
 
     function resetAllData() {
       if (confirm('Yakin ingin mereset semua data ke pengaturan default?')) {
-        const defaultData = {
-          welcomeText: "Selamat Datang Di WARKIL STATION",
-          logoHome: "https://files.catbox.moe/q57v1o.png",
-          logoPayment: "https://files.catbox.moe/q57v1o.png",
-          qrisImage: "https://files.catbox.moe/baura6.jpg",
-          danaNumber: "Tanya Ajis Aja😘",
-          gopayNumber: "Tanya Ajis Aja😘",
-          ovoNumber: "Tanya Ajis Aja😘",
-          backgroundMusic: "https://files.catbox.moe/2inwtn.mp3"
-        };
+        const defaultData = getDefaultData();
         localStorage.setItem('warkilData', JSON.stringify(defaultData));
+        currentData = defaultData;
         showStatus('Semua data berhasil direset!', 'success');
         loadCurrentData();
+        
+        // Trigger real-time update notification
+        triggerRealTimeUpdate();
       }
     }
 
-    // Utility functions
+    // Enhanced utility functions
+    function updateData(updates, successMessage) {
+      const data = getCurrentData();
+      const updatedData = { ...data, ...updates };
+      
+      localStorage.setItem('warkilData', JSON.stringify(updatedData));
+      currentData = updatedData;
+      
+      showStatus(successMessage, 'success');
+      loadCurrentData();
+      
+      // Trigger real-time update
+      triggerRealTimeUpdate();
+    }
+
     function getCurrentData() {
       return JSON.parse(localStorage.getItem('warkilData')) || {};
     }
@@ -572,10 +598,30 @@
       const statusElement = document.getElementById('statusMessage');
       statusElement.textContent = message;
       statusElement.className = `status-message status-${type}`;
+      statusElement.style.display = 'block';
       
       setTimeout(() => {
         statusElement.style.display = 'none';
       }, 5000);
+    }
+
+    function updateCurrentDataDisplay(data) {
+      document.getElementById('currentWelcomeText').textContent = data.welcomeText;
+      document.getElementById('currentDanaNumber').textContent = data.danaNumber;
+      document.getElementById('currentGopayNumber').textContent = data.gopayNumber;
+      document.getElementById('currentOvoNumber').textContent = data.ovoNumber;
+      document.getElementById('currentMusic').textContent = data.backgroundMusic ? 'Musik Aktif' : 'Tidak ada musik';
+    }
+
+    function updateLogoPreview(logoUrl) {
+      const logoPreview = document.getElementById('logoPreview');
+      logoPreview.src = logoUrl;
+      logoPreview.style.display = logoUrl ? 'block' : 'none';
+    }
+
+    function updateSystemInfo() {
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleString('id-ID');
+      document.getElementById('totalSettings').textContent = Object.keys(currentData).length;
     }
 
     function exportData() {
@@ -595,10 +641,45 @@
       window.open('index.html', '_blank');
     }
 
+    // Real-time update trigger
+    function triggerRealTimeUpdate() {
+      // Simulate storage event to trigger updates in other tabs
+      const event = new StorageEvent('storage', {
+        key: 'warkilData',
+        newValue: localStorage.getItem('warkilData'),
+        oldValue: localStorage.getItem('warkilData'),
+        url: window.location.href,
+        storageArea: localStorage
+      });
+      window.dispatchEvent(event);
+    }
+
+    // Real-time monitoring for changes from other tabs
+    function setupRealTimeMonitoring() {
+      window.addEventListener('storage', function(e) {
+        if (e.key === 'warkilData' && e.newValue !== e.oldValue) {
+          loadCurrentData();
+          showStatus('Data diperbarui secara real-time!', 'success');
+        }
+      });
+    }
+
+    // Auto-refresh current data every 2 seconds
+    function startAutoRefresh() {
+      setInterval(() => {
+        const freshData = JSON.parse(localStorage.getItem('warkilData'));
+        if (freshData && JSON.stringify(freshData) !== JSON.stringify(currentData)) {
+          loadCurrentData();
+        }
+      }, 2000);
+    }
+
     // Initialize admin dashboard
     window.onload = function() {
       loadCurrentData();
+      setupRealTimeMonitoring();
+      startAutoRefresh();
     };
   </script>
 </body>
-</html>
+  </html>
